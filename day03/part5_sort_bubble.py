@@ -27,7 +27,7 @@ def bubble_sort(arr: list):
                 arr[j], arr[j+1] = arr[j+1], arr[j]
                 swapped = True
         # 정렬 후 리스트 출력
-        print(arr)
+        # print(arr)
         
         # 내부 반복(패스)가 종료되었을 때
         # 교환이 없었다면 정렬 완료

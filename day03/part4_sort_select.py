@@ -42,7 +42,7 @@ def selection_sort(arr: list):
         # arr[min_idx] = dummy
         # - 파이썬에서 사용 가능한 문법
         arr[i], arr[min_idx] = arr[min_idx], arr[i]
-        print(arr)
+        # print(arr)
     # 정렬된 리스트를 반환
     return arr # 전달받은 요소를 직접 수정하여 반환
 

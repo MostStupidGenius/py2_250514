@@ -25,7 +25,7 @@ def insertion_sort(arr: list):
         # 삽입하려는 값이 적절한 위치에 도달했다는 의미이므로
         # 값을 변경해준다.
         arr[j+1] = key
-        print(arr)
+        # print(arr)
     # 정렬된 리스트를 반환
     return arr
 
