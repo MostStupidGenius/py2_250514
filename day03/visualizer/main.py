@@ -2,7 +2,7 @@ import tkinter as tk
 from turtle import TurtleScreen, RawTurtle
 import random
 from tkinter import messagebox  # 메시지 박스를 사용하기 위해 추가
-from heap_sort import HeapSort  # 힙 정렬을 위한 클래스 임포트
+# from heap_sort import HeapSort  # 힙 정렬을 위한 클래스 임포트
 
 # 프로그램을 만들면서 위치 수정을 쉽게 하기 위해서 기준 위치 등을 상수로 선언
 BASE_X = -234
@@ -29,6 +29,21 @@ class Bar(RawTurtle):
     def set_position(self, position):
         # y좌표를 조정하여 막대의 높이 차이를 설정
         self.goto(BASE_X + (OFFSET_X + 10) * position, BASE_Y + (self.height_increase * 10) * self.size)  # 높이 차이를 설정
+
+def quick_sort(arr):
+    # 배열의 길이가 1 이하이면 이미 정렬된 상태이므로 그대로 반환
+    if len(arr) <= 1:
+        return arr
+    # 피벗을 배열의 중간 값으로 선택
+    pivot = arr[len(arr) // 2]
+    # 피벗보다 작은 값들로 이루어진 리스트
+    left = [x for x in arr if x < pivot]
+    # 피벗과 같은 값들로 이루어진 리스트
+    middle = [x for x in arr if x == pivot]
+    # 피벗보다 큰 값들로 이루어진 리스트
+    right = [x for x in arr if x > pivot]
+    # 재귀적으로 정렬하여 합친 결과 반환
+    return quick_sort(left) + middle + quick_sort(right)
 
 # 시각화 프로그램을 위한 클래스
 class Visualizer:
@@ -94,6 +109,8 @@ class Visualizer:
         algorithm = self.algorithm_var.get()
         if algorithm == "bubble":
             self.bubble_sort()
+        if algorithm == "insertion":
+            self.insertion_sort()
         elif algorithm == "selection":
             self.selection_sort()
         elif algorithm == "quick":
@@ -145,18 +162,140 @@ class Visualizer:
             # self.root.after(30)  # 지연 시간 (속도 증가)
 
     def quick_sort(self):
-        # 퀵 정렬 구현
-        pass  # 여기에 퀵 정렬 알고리즘을 추가하세요
-
+        # 막대의 size 값만 추출하여 리스트로 만듦
+        sizes = [bar.size for bar in self.bars]
+        # quick_sort 함수로 정렬
+        sorted_sizes = quick_sort(sizes)
+        # 정렬된 순서에 맞게 self.bars 재배치
+        size_to_bar = {bar.size: [] for bar in self.bars}
+        for bar in self.bars:
+            size_to_bar[bar.size].append(bar)
+        new_bars = []
+        for size in sorted_sizes:
+            new_bars.append(size_to_bar[size].pop(0))
+        self.bars = new_bars
+        self.update()
+        # 색상 복원
+        for bar in self.bars:
+            bar.set_color()
+    
+    def insertion_sort(self):
+        n = len(self.bars)
+        for i in range(1, n):
+            key_bar = self.bars[i]
+            j = i - 1
+            # 현재 막대기 강조
+            key_bar.color("yellow")
+            self.update(50)
+            while j >= 0 and self.bars[j].size > key_bar.size:
+                self.bars[j + 1] = self.bars[j]
+                self.update_bar_positions()
+                self.root.update()
+                self.root.after(30)
+                j -= 1
+            self.bars[j + 1] = key_bar
+            self.update_bar_positions()
+            self.root.update()
+            self.root.after(30)
+            # 색상 복원
+            key_bar.set_color()
+        for bar in self.bars:
+            bar.set_color()
     def merge_sort(self):
-        # 병합 정렬 구현
-        pass  # 여기에 병합 정렬 알고리즘을 추가하세요
+        def merge_sort_recursive(bars):
+            if len(bars) <= 1:
+                return bars
+            mid = len(bars) // 2
+            left = merge_sort_recursive(bars[:mid])
+            right = merge_sort_recursive(bars[mid:])
+            return merge(left, right)
+
+        def merge(left, right):
+            merged = []
+            i = j = 0
+            while i < len(left) and j < len(right):
+                # 시각화: 비교 중인 막대 색상 변경
+                left[i].color("yellow")
+                right[j].color("yellow")
+                self.update(50)
+                if left[i].size <= right[j].size:
+                    merged.append(left[i])
+                    left[i].set_color()
+                    right[j].set_color()
+                    i += 1
+                else:
+                    merged.append(right[j])
+                    left[i].set_color()
+                    right[j].set_color()
+                    j += 1
+            while i < len(left):
+                merged.append(left[i])
+                i += 1
+            while j < len(right):
+                merged.append(right[j])
+                j += 1
+            # 병합된 막대 위치 갱신
+            for idx, bar in enumerate(merged):
+                bar.set_position(idx)
+            self.root.update()
+            self.root.after(50)
+            return merged
+
+        self.bars = merge_sort_recursive(self.bars)
+        self.update()
+        for bar in self.bars:
+            bar.set_color()
 
     def heap_sort(self):
-        # 힙 정렬 구현
-        heap_sorter = HeapSort(self)
-        heap_sorter.sort()  # 힙 정렬 메서드 호출
-        self.update()
+        n = len(self.bars)
+
+        # Build max heap
+        # Bottom-up heap construction
+        for i in range(n // 2 - 1, -1, -1):
+            largest = i
+            while True:
+                l = 2 * largest + 1
+                r = 2 * largest + 2
+                new_largest = largest
+
+                if l < n and self.bars[l].size > self.bars[new_largest].size:
+                    new_largest = l
+                if r < n and self.bars[r].size > self.bars[new_largest].size:
+                    new_largest = r
+
+                if new_largest == largest:
+                    break
+
+                self.bars[largest], self.bars[new_largest] = self.bars[new_largest], self.bars[largest]
+                self.update()
+                largest = new_largest
+
+        # Extract elements one by one
+        for i in range(n - 1, 0, -1):
+            # Swap
+            self.bars[0], self.bars[i] = self.bars[i], self.bars[0]
+            self.update()
+            self._heapify(i, 0)
+
+        # 색상 복원
+        for bar in self.bars:
+            bar.set_color()
+
+    def _heapify(self, n, i):
+        largest = i
+        l = 2 * i + 1
+        r = 2 * i + 2
+
+        if l < n and self.bars[l].size > self.bars[largest].size:
+            largest = l
+        if r < n and self.bars[r].size > self.bars[largest].size:
+            largest = r
+
+        if largest != i:
+            # Swap
+            self.bars[i], self.bars[largest] = self.bars[largest], self.bars[i]
+            self.update()
+            self._heapify(n, largest)
 
     def update(self, delay:int = 30):
         self.update_bar_positions()
@@ -170,6 +309,7 @@ class Visualizer:
 
     def create_radio_buttons(self):
         tk.Label(self.root, text="정렬 알고리즘 선택:").pack()
+        tk.Radiobutton(self.root, text="삽입 정렬", variable=self.algorithm_var, value="insertion").pack(anchor=tk.W)
         tk.Radiobutton(self.root, text="버블 정렬", variable=self.algorithm_var, value="bubble").pack(anchor=tk.W)
         tk.Radiobutton(self.root, text="선택 정렬", variable=self.algorithm_var, value="selection").pack(anchor=tk.W)
         tk.Radiobutton(self.root, text="퀵 정렬", variable=self.algorithm_var, value="quick").pack(anchor=tk.W)

@@ -87,6 +87,6 @@ if __name__ == "__main__":
     quick_time      = avg_time(quick_sort, times=100, size=10000)
     print(f"퀵정렬 완료 {quick_time:.3f}")
     merge_time      = avg_time(merge_sort, times=100, size=10000)
-    print(f"병합정렬 완료 {merge_time:.3f}")
+    print(f"병합정렬 완료 {e:.3f}")
     heap_time       = avg_time(heap_sort, times=100, size=10000)
     print(f"힙 정렬 완료 {heap_time:.3f}")
