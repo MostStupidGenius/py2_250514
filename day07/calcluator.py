@@ -14,7 +14,7 @@ class Calculator():
         
         # 시작시 창크기를 담을 변수 선언
         self.width = 300
-        self.height = 200
+        self.height = 300
         self.root.geometry(f"{self.width}x{self.height}")
 
         # 계산결과를 담을 변수 선언
@@ -25,6 +25,8 @@ class Calculator():
         self.oper: str = None
         # 마지막으로 입력한 값이 숫자인지여부
         self.is_last_oper_num = False
+        # 연산 횟수를 기록할 변수 선언
+        self.oper_count = 0
         
         # 프레임 및 위젯 생성 실행
         self.set_ui()
@@ -100,6 +102,8 @@ class Calculator():
     # 기존 결과값(self.result)에 문자열 연산자와 피연산자 숫자값을 전달받아서
     # 연산하는 함수
     def button_click(self, value: str):
+        # 연산횟수를 기록할 변수
+        self.oper_count += 1
         # 입력된 value 값에 따라 다른 동작을 수행하는 메서드
 
         # 입력된 문자열이 숫자인지 연산자인지 구분하여
@@ -107,27 +111,36 @@ class Calculator():
         # -> 숫자를 하나씩 입력받기 때문에 각각 연산을 해버리면
         # 계산 결과에 문제가 발생한다.
         
+        # 숫자값이 입력되는 경우는 피연산자인 경우뿐이다.
         if value.isdigit():
             # 피연산할 숫자값을 담은 리스트 nums에 문자열 추가
             self.nums.append(value)
             
+            # 아래 코드는 화면에 현재 연산중인 값을 표시하는 코드
             # 직전에 입력한 값이 연산자면 display 라벨을 비워준다.
-            if not self.is_last_oper_num: self.display["text"] = "0"
+            if not self.is_last_oper_num:
+                self.display["text"] = "0"
+
             display_text = "" if int(self.display["text"]) == 0 else str(self.display["text"])
             self.display["text"] = "".join([display_text, str(value)])
-            self.result = int(self.display["text"])
+            # self.result = int(self.display["text"])
             self.is_last_oper_num = True
         else:
             # self.nums에 담긴 문자형 숫자들을 피연산으로 전달
-            int_num = Calculator.convert_nums(self.nums)
+            num = Calculator.convert_nums(self.nums)
             # 문자형 숫자를 담은 리스트를 비워준다.
             self.nums: list[str] = []
-            self.calculate(value, int_num)
+            if self.oper_count == 1:
+                self.result = num
+                return 
+            self.calculate(value, num) # self.result와 value의 연산자로
+            # num의 값을 연산
             self.is_last_oper_num = False
 
     # 문자열 리스트를 전달받아서 하나의 문자열로 결합후
     # 숫자로 변환하는 함수
     def convert_nums(nums: list[str]):
+        if not nums: 0
         expressions = "".join(nums)
         return int(expressions)
 
@@ -140,10 +153,10 @@ class Calculator():
             self.result = value
             self.oper = oper
             return
-        match oper:
-            case '=':
-                self.result = self.calculate(self.oper, value)
-                self.display.config(text=self.result) # 연산결과 보여주기
+        match self.oper:
+            # case '=':
+                # self.result = self.calculate(self.oper, value)
+                # self.display.config(text=self.result) # 연산결과 보여주기
             case '+':
                 self.display["text"] = str(self.result + int(value))
             case '-':
@@ -154,5 +167,9 @@ class Calculator():
                 self.display["text"] = str(self.result / int(value))
             case _:
                 msgbox.showinfo("정보", "알 수 없는 결과입니다.")
+                return
+        
+        # 연산 결과를 self.result에 담기
+        self.result = int(self.display["text"])
 if __name__ == "__main__":
     obj = Calculator()
